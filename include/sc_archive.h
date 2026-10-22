@@ -1,6 +1,7 @@
 #pragma once
 
 #include <archive_format.h>
+#include <codec.h>
 
 #include <filesystem>
 #include <memory>
@@ -8,9 +9,9 @@
 #include <string_view>
 #include <vector>
 
-// Archives: many files and folders in one stream. The format (archive_zip.h) is the structure;
-// a codec (codec.h) may compress the whole stream around it. This is the front: open() finds the
-// format from the bytes, and create() writes one.
+// Archives: many files and folders in one stream. The format (archive_zip.h, archive_tar.h) is the
+// structure; a codec (codec.h) may compress the whole stream around it (a .tar.gz). This is the
+// front: open() finds the format from the bytes, and create() writes one.
 //
 //     const auto docx = sc::archive::open("letter.docx");
 //     for (const auto &entry: docx.entries()) entry.name, entry.size;
@@ -20,9 +21,10 @@
 //     out.add("notes/readme.txt", "Hello");
 //     out.add_file("photos/a.jpg", "/data/a.jpg", sc::archive::method::store);
 //     out.close();
+//
+//     auto tgz = sc::archive::create("backup.tar.gz", sc::archive::kind::tar, std::make_shared<sc::compression::gzip>());
 namespace sc::archive {
-    // TODO: tar, alone or in a codec (.tar.gz).
-    enum class kind { zip };
+    enum class kind { zip, tar };
 
     // Not thread-safe: use one per thread, or lock around it.
     class reader {
@@ -55,11 +57,13 @@ namespace sc::archive {
         writer(writer &&) noexcept = default;
         writer &operator=(writer &&) noexcept = default;
 
-        // An entry from memory; a name added again replaces the earlier one. Throws
-        // std::invalid_argument for an empty name or a method other than store and deflate.
-        void add(std::string_view name, std::string bytes, method how = method::deflate);
+        // An entry from memory; a name added again replaces the earlier one, and a name ending in
+        // '/' is a folder. how: the format's own choice by default (ZIP deflates, tar stores); ZIP
+        // also takes store, tar only store. Throws std::invalid_argument for an empty name or a
+        // method the format can't write.
+        void add(std::string_view name, std::string bytes, std::optional<method> how = std::nullopt);
         // An entry from a file, read when the archive is closed.
-        void add_file(std::string_view name, const std::filesystem::path &file, method how = method::deflate);
+        void add_file(std::string_view name, const std::filesystem::path &file, std::optional<method> how = std::nullopt);
 
         // Writes the archive; throws std::runtime_error when it can't (the file is then not made).
         void close();
@@ -74,5 +78,7 @@ namespace sc::archive {
     // The same, from an archive held in memory.
     reader from_memory(std::string bytes);
 
-    writer create(const std::filesystem::path &file, kind as = kind::zip);
+    // around: a codec for the whole archive (gzip for a .tar.gz); tar only, ZIP compresses its
+    // entries instead and throws std::invalid_argument.
+    writer create(const std::filesystem::path &file, kind as = kind::zip, std::shared_ptr<const compression::codec> around = {});
 }

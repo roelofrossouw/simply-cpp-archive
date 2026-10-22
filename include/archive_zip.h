@@ -15,6 +15,9 @@ namespace sc::archive::format {
         explicit zip_reader(std::string bytes);
         ~zip_reader() override;
 
+        // Whether bytes start the way a ZIP archive does ("PK\3\4", or "PK\5\6" when empty).
+        static bool recognizes(std::string_view bytes);
+
         [[nodiscard]] const std::vector<entry> &entries() const override;
         [[nodiscard]] std::string read(std::string_view name) const override;
 
@@ -30,8 +33,9 @@ namespace sc::archive::format {
         // Closes, if close() wasn't called; a failure then goes to std::cerr.
         ~zip_writer() override;
 
-        void add(std::string_view name, std::string bytes, method how) override;
-        void add_file(std::string_view name, const std::filesystem::path &file, method how) override;
+        // how: store or deflate; nullopt deflates.
+        void add(std::string_view name, std::string bytes, std::optional<method> how) override;
+        void add_file(std::string_view name, const std::filesystem::path &file, std::optional<method> how) override;
         void close() override;
 
     private:
