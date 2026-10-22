@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/SimplyCppFunctions.cmake")
+include(CMakeFindDependencyMacro)
+
+find_or_install_package(sc-core simply-cpp-dev simply-cpp 1.20.0)
+# The static library links zlib and libzip.
+find_dependency(ZLIB)
+config_or_install_package(libzip libzip-dev libzip)
+
+include("${CMAKE_CURRENT_LIST_DIR}/sc-compressionTargets.cmake")
