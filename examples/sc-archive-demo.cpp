@@ -1,5 +1,5 @@
-// Lists an archive's entries (ZIP, and .docx, .xlsx, .jar with it; tar; either in gzip, as a
-// .tar.gz), or extracts them with --extract. Without a file, makes a small archive and
+// Lists an archive's entries (ZIP, and .docx, .xlsx, .jar with it; tar; either compressed with
+// gzip, bzip2, xz or zstd, as a .tar.gz), or extracts them with --extract. Without a file, makes a small archive and
 // a gzip stream to show both.
 //
 //     sc-archive-demo report.docx
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
             {"extract", {{"short", "x"}, {"value", "FOLDER"}, {"default", ""}, {"help", "extract into FOLDER"}}},
             {"prefix", {{"short", "p"}, {"value", "PATH"}, {"default", ""}, {"help", "only the entries starting with PATH"}}}}},
         {"positional", {
-            {"file", {{"default", ""}, {"help", "the archive (ZIP or tar, gzipped or not)"}}}}}}};
+            {"file", {{"default", ""}, {"help", "the archive (ZIP or tar, compressed or not)"}}}}}}};
     try {
         // [readme]
         auto file = std::filesystem::path{args.as<std::string>("file")};
