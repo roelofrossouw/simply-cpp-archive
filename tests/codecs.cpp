@@ -1,11 +1,16 @@
-// The deflate and gzip codecs: round trips, levels, empty and large data, several gzip members,
-// detection, and errors.
+// The codecs: round trips, levels, empty and large data, several streams one after the other,
+// detection, and errors; for each, then what's particular to deflate and gzip.
+#include <codec_bzip2.h>
 #include <codec_deflate.h>
 #include <codec_gzip.h>
+#include <codec_xz.h>
+#include <codec_zstd.h>
 #include <sc_test.h>
 
+#include <memory>
 #include <random>
 #include <string>
+#include <vector>
 
 int main() {
     using namespace sc::compression;
@@ -16,6 +21,40 @@ int main() {
     string noise(200000, '\0');
     for (auto &c: noise) c = static_cast<char>(random());
     const string text = string(100000, 'a') + "the end";
+
+    std::vector<std::unique_ptr<codec>> all;
+    all.push_back(std::make_unique<gzip>());
+    all.push_back(std::make_unique<bzip2>());
+    all.push_back(std::make_unique<xz>());
+    all.push_back(std::make_unique<zstd>());
+
+    SECTION("Every codec: round trips, streams one after the other, detection, bad and cut-short data");
+    for (const auto &each: all) {
+        const auto packed = each->compress(text);
+        CHECK(packed.size() < 1000);
+        CHECK_EQ(each->decompress(packed), text);
+        CHECK_EQ(each->decompress(each->compress(noise)), noise);
+        CHECK_EQ(each->decompress(each->compress("")), string{});
+        CHECK_EQ(each->decompress(each->compress("first ") + each->compress("second")), string{"first second"});
+        const auto found = detect(packed);
+        CHECK(found != nullptr);
+        if (found) CHECK_EQ(found->name(), each->name());
+        CHECK_THROWS_AS((void) each->decompress("not compressed at all"), std::runtime_error);
+        CHECK_THROWS_AS((void) each->decompress(packed.substr(0, packed.size() / 2)), std::runtime_error);
+        CHECK_THROWS_AS((void) each->decompress(""), std::runtime_error);
+    }
+
+    SECTION("Levels: each codec's range");
+    {
+        CHECK(bzip2{1}.compress(noise).size() > 0);
+        CHECK(xz{0}.compress(text).size() >= xz{9}.compress(text).size());
+        CHECK(zstd{1}.compress(text).size() >= zstd{19}.compress(text).size());
+        CHECK_THROWS_AS(bzip2{0}, std::invalid_argument);
+        CHECK_THROWS_AS(bzip2{10}, std::invalid_argument);
+        CHECK_THROWS_AS(xz{10}, std::invalid_argument);
+        CHECK_THROWS_AS(zstd{0}, std::invalid_argument);
+        CHECK_THROWS_AS(zstd{23}, std::invalid_argument);
+    }
 
     SECTION("deflate: round trips, levels");
     {

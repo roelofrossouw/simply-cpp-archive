@@ -78,7 +78,7 @@ namespace sc::archive {
     // The same, from an archive held in memory.
     reader from_memory(std::string bytes);
 
-    // around: a codec for the whole archive (gzip for a .tar.gz); tar only, ZIP compresses its
+    // around: a codec for the whole archive (gzip for a .tar.gz, bzip2, xz, zstd); tar only, ZIP compresses its
     // entries instead and throws std::invalid_argument.
     writer create(const std::filesystem::path &file, kind as = kind::zip, std::shared_ptr<const compression::codec> around = {});
 }

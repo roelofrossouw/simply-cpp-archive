@@ -5,8 +5,9 @@
 
 #include <memory>
 
-// tar archives (POSIX ustar and pax, reading GNU long names too), in our own code. A .tar.gz is
-// tar inside the gzip codec: the reader is handed the decompressed bytes, the writer a codec.
+// tar archives (POSIX ustar and pax, reading GNU long names too), in our own code. A .tar.gz (or
+// .tar.bz2, .tar.xz, .tar.zst) is tar inside a codec: the reader is handed the decompressed bytes,
+// the writer a codec.
 namespace sc::archive::format {
     // Lists files and folders; links and devices are skipped. Names lose a leading "./", and a
     // name that comes again (tar appends updates) replaces the earlier entry in its place. The

@@ -1,1 +1,1 @@
-Archives (ZIP, tar) and compression codecs (gzip, deflate) for simply-cpp
+Archives (ZIP, tar) and compression codecs (gzip, deflate, bzip2, xz, zstd) for simply-cpp

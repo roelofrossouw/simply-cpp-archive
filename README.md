@@ -7,7 +7,8 @@ single streams. They are two separate things, so there are two class families:
   (libzip), and with it `.docx`, `.xlsx`, `.pptx`, `.jar`, `.epub`; tar (our
   own code: ustar and pax, reading GNU long names too).
 - **Codecs** (`sc::compression::codec`): the compression of one stream of
-  bytes. gzip and raw deflate (zlib) for now.
+  bytes. gzip and raw deflate (zlib), bzip2 (libbz2), xz (liblzma) and
+  Zstandard (libzstd).
 
 `sc::archive` is the front: `open()` finds the format from a file's first bytes,
 decompressing first when a codec wraps it (a `.tar.gz`), and `create()` writes one.
@@ -36,6 +37,7 @@ tgz.close();
 
 const std::string packed = sc::compression::gzip{}.compress(text);  // .gz
 const std::string raw = sc::compression::deflate{9}.compress(data); // RFC 1951, as in ZIP and PDF
+const std::string small = sc::compression::xz{}.compress(text);     // also bzip2{}, zstd{}
 if (const auto codec = sc::compression::detect(bytes)) text = codec->decompress(bytes);
 ```
 
@@ -48,6 +50,9 @@ if (const auto codec = sc::compression::detect(bytes)) text = codec->decompress(
 | `codec.h` | `sc::compression::codec`, `detect()` | what each codec implements |
 | `codec_gzip.h` | `sc::compression::gzip` | gzip (zlib) |
 | `codec_deflate.h` | `sc::compression::deflate` | raw deflate (zlib) |
+| `codec_bzip2.h` | `sc::compression::bzip2` | bzip2 (libbz2) |
+| `codec_xz.h` | `sc::compression::xz` | xz (liblzma) |
+| `codec_zstd.h` | `sc::compression::zstd` | Zstandard (libzstd) |
 
 - A reader opens a file or `from_memory(bytes)`. Entries come in the archive's
   order, with their size, compressed size, method (`store`, `deflate`, `bzip2`,
@@ -65,9 +70,13 @@ if (const auto codec = sc::compression::detect(bytes)) text = codec->decompress(
 - `extract()` writes entries into a folder, keeping their paths, and refuses an
   entry that would land outside it (`../x`, an absolute path), before writing
   anything. It's shared by every format.
-- A codec's level (0 to 9, 6 by default) goes in its constructor. gzip's
-  `decompress()` reads several members one after the other, as `cat a.gz b.gz`
-  makes. Bad or cut-short data throws `std::runtime_error`.
+- A codec's level goes in its constructor: gzip and deflate 0 to 9 (6 by
+  default), bzip2 1 to 9 (9), xz 0 to 9 (6), zstd 1 to 22 (3); anything else
+  throws `std::invalid_argument`. Every `decompress()` (but raw deflate's) reads
+  several streams one after the other, as `cat a.gz b.gz` makes. Bad or
+  cut-short data throws `std::runtime_error`.
+- `detect(bytes)` finds gzip, bzip2, xz and zstd by their headers, so `open()`
+  reads `.tar.gz`, `.tar.bz2`, `.tar.xz` and `.tar.zst` alike.
 - Readers and writers aren't thread-safe: one per thread, or a lock around it.
 
 ## Libraries and licences
@@ -75,20 +84,20 @@ if (const auto codec = sc::compression::detect(bytes)) text = codec->decompress(
 | Library | For | Licence |
 |---|---|---|
 | zlib | the deflate and gzip codecs | zlib License |
+| libbz2 | the bzip2 codec | bzip2 License (BSD-style) |
+| liblzma | the xz codec | 0BSD (public domain before 5.6) |
+| libzstd | the zstd codec | BSD-3-Clause (or GPL-2.0, our choice: BSD) |
 | libzip | the ZIP format | BSD-3-Clause |
 
-Both are linked from the system (`zlib1g-dev`, `libzip-dev`; Homebrew `zlib`,
-`libzip`), so their notices come with their own packages. sc-archive itself is
-Apache-2.0.
-
-**TODO:** bzip2, xz and zstd codecs (libbz2, liblzma, libzstd: all permissive,
-packaged on every supported Ubuntu and in Homebrew), and with them `.tar.bz2`,
-`.tar.xz`, `.tar.zst`.
+All are linked from the system (`zlib1g-dev`, `libbz2-dev`, `liblzma-dev`,
+`libzstd-dev`, `libzip-dev`; on macOS libbz2 and liblzma come with the SDK,
+Homebrew has `zstd` and `libzip`), so their notices come with their own
+packages. The tar code is our own. sc-archive itself is Apache-2.0.
 
 ## Demo
 
 `sc-archive-demo [FILE] [--extract FOLDER] [--prefix PATH]` lists an archive's
-(ZIP or tar, gzipped or not) entries, or extracts them; without a file it makes a small archive and a gzip
+(ZIP or tar, compressed or not) entries, or extracts them; without a file it makes a small archive and a gzip
 stream in the temporary folder and shows them.
 
 <!-- sc-example: examples/sc-archive-demo.cpp -->

@@ -2,7 +2,10 @@
 // back from a file, from memory and as .tar.gz, GNU long names and "./" names written by hand,
 // extracting, and errors.
 #include <archive_tar.h>
+#include <codec_bzip2.h>
 #include <codec_gzip.h>
+#include <codec_xz.h>
+#include <codec_zstd.h>
 #include <sc_archive.h>
 #include <sc_test.h>
 
@@ -12,6 +15,7 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -108,6 +112,21 @@ int main() {
         CHECK_EQ(open(root / "test.tar.gz").read("notes/big.txt"), big);
         CHECK_EQ(from_memory(packed).entries().size(), std::size_t{1});
         CHECK_EQ(from_memory(slurp(root / "test.tar")).read("hello.txt"), string{"Hello again"});
+    }
+
+    SECTION(".tar.bz2, .tar.xz, .tar.zst: the other codecs, found when opening");
+    {
+        const std::vector<std::shared_ptr<const sc::compression::codec>> codecs{
+                std::make_shared<sc::compression::bzip2>(), std::make_shared<sc::compression::xz>(),
+                std::make_shared<sc::compression::zstd>()};
+        for (const auto &codec: codecs) {
+            const auto file = root / ("test.tar." + codec->name());
+            auto out = create(file, kind::tar, codec);
+            out.add("notes/big.txt", big);
+            out.close();
+            CHECK(fs::file_size(file) < 2000);
+            CHECK_EQ(open(file).read("notes/big.txt"), big);
+        }
     }
 
     SECTION("As tar programs write it: GNU long names, \"./\" names, links skipped, a name again replaced");

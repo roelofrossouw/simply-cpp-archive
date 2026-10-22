@@ -3,4 +3,5 @@ Copyright 2026 Roelof Rossouw
 
 Licensed under the Apache License, Version 2.0 (see LICENSE).
 
-Uses zlib (zlib License) and libzip (BSD-3-Clause), linked from the system. The tar code is its own.
+Uses zlib (zlib License), libbz2 (bzip2 License), liblzma (0BSD), libzstd (BSD-3-Clause) and
+libzip (BSD-3-Clause), linked from the system. The tar code is its own.
