@@ -1,1 +1,1 @@
-ZIP archives and gzip/deflate streams for simply-cpp
+Archives (ZIP) and compression codecs (gzip, deflate) for simply-cpp
