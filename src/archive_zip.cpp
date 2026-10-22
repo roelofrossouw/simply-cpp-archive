@@ -105,6 +105,10 @@ namespace sc::archive::format {
 
     zip_reader::~zip_reader() = default;
 
+    bool zip_reader::recognizes(const std::string_view bytes) {
+        return bytes.starts_with(std::string_view{"PK\3\4", 4}) || bytes.starts_with(std::string_view{"PK\5\6", 4});
+    }
+
     const std::vector<entry> &zip_reader::entries() const { return implementation_->entries; }
 
     std::string zip_reader::read(const std::string_view name) const { return implementation_->read(name); }
@@ -148,28 +152,28 @@ namespace sc::archive::format {
 
     zip_writer::~zip_writer() = default;
 
-    void zip_writer::add(const std::string_view name, std::string bytes, const method how) {
+    void zip_writer::add(const std::string_view name, std::string bytes, const std::optional<method> how) {
         auto &self = *implementation_;
-        self.check(name, how);
+        self.check(name, how.value_or(method::deflate));
         const auto &data = self.held.emplace_back(std::move(bytes));
         zip_source_t *source = zip_source_buffer(self.archive, data.data(), data.size(), 0);
         const std::string key{name};
         if (!source) throw std::runtime_error("ZIP: can't add " + key + ": " + zip_strerror(self.archive));
         const auto index = zip_file_add(self.archive, key.c_str(), source, ZIP_FL_OVERWRITE | ZIP_FL_ENC_UTF_8);
         if (index < 0) zip_source_free(source);
-        self.added(index, key, how);
+        self.added(index, key, how.value_or(method::deflate));
     }
 
-    void zip_writer::add_file(const std::string_view name, const std::filesystem::path &file, const method how) {
+    void zip_writer::add_file(const std::string_view name, const std::filesystem::path &file, const std::optional<method> how) {
         auto &self = *implementation_;
-        self.check(name, how);
+        self.check(name, how.value_or(method::deflate));
         if (!std::filesystem::is_regular_file(file)) throw std::runtime_error("ZIP: " + file.string() + " isn't a file");
         zip_source_t *source = zip_source_file(self.archive, file.string().c_str(), 0, whole_file);
         const std::string key{name};
         if (!source) throw std::runtime_error("ZIP: can't add " + file.string() + ": " + zip_strerror(self.archive));
         const auto index = zip_file_add(self.archive, key.c_str(), source, ZIP_FL_OVERWRITE | ZIP_FL_ENC_UTF_8);
         if (index < 0) zip_source_free(source);
-        self.added(index, key, how);
+        self.added(index, key, how.value_or(method::deflate));
     }
 
     void zip_writer::close() {

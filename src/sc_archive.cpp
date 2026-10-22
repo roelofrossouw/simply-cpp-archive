@@ -1,5 +1,6 @@
-#include "archive.h"
+#include "sc_archive.h"
 
+#include "archive_tar.h"
 #include "archive_zip.h"
 #include "codec.h"
 
@@ -10,9 +11,11 @@
 
 namespace sc::archive {
     namespace {
-        // "PK\3\4" starts an entry, "PK\5\6" an empty archive's directory.
-        bool zip_bytes(const std::string_view bytes) {
-            return bytes.starts_with(std::string_view{"PK\3\4", 4}) || bytes.starts_with(std::string_view{"PK\5\6", 4});
+        // Takes the bytes when it knows their format.
+        std::unique_ptr<format::reader> recognized(std::string &bytes) {
+            if (format::zip_reader::recognizes(bytes)) return std::make_unique<format::zip_reader>(std::move(bytes));
+            if (format::tar_reader::recognizes(bytes)) return std::make_unique<format::tar_reader>(std::move(bytes));
+            return nullptr;
         }
 
         std::string first_bytes(const std::filesystem::path &file, const std::size_t count) {
@@ -71,34 +74,39 @@ namespace sc::archive {
 
     writer::~writer() = default; // the format closes itself
 
-    void writer::add(const std::string_view name, std::string bytes, const method how) { format_->add(name, std::move(bytes), how); }
+    void writer::add(const std::string_view name, std::string bytes, const std::optional<method> how) { format_->add(name, std::move(bytes), how); }
 
-    void writer::add_file(const std::string_view name, const std::filesystem::path &file, const method how) {
+    void writer::add_file(const std::string_view name, const std::filesystem::path &file, const std::optional<method> how) {
         format_->add_file(name, file, how);
     }
 
     void writer::close() { format_->close(); }
 
     reader open(const std::filesystem::path &file) {
-        const auto start = first_bytes(file, 4);
-        if (zip_bytes(start)) return reader{std::make_unique<format::zip_reader>(file)}; // libzip reads the file itself
+        const auto start = first_bytes(file, 512);
+        // Files are read by the format itself (libzip seeks, rather than reading it all).
+        if (format::zip_reader::recognizes(start)) return reader{std::make_unique<format::zip_reader>(file)};
+        if (format::tar_reader::recognizes(start)) return reader{std::make_unique<format::tar_reader>(file)};
         if (compression::detect(start)) return from_memory(all_bytes(file));
         throw std::runtime_error("archive: " + file.string() + " isn't an archive");
     }
 
     reader from_memory(std::string bytes) {
-        if (zip_bytes(bytes)) return reader{std::make_unique<format::zip_reader>(std::move(bytes))};
+        if (auto format = recognized(bytes)) return reader{std::move(format)};
         if (const auto codec = compression::detect(bytes)) {
-            const auto inside = codec->decompress(bytes);
-            if (zip_bytes(inside)) return reader{std::make_unique<format::zip_reader>(inside)};
+            auto inside = codec->decompress(bytes);
+            if (auto format = recognized(inside)) return reader{std::move(format)};
             throw std::runtime_error("archive: " + codec->name() + " data without an archive inside");
         }
         throw std::runtime_error("archive: not an archive");
     }
 
-    writer create(const std::filesystem::path &file, const kind as) {
+    writer create(const std::filesystem::path &file, const kind as, std::shared_ptr<const compression::codec> around) {
         switch (as) {
-            case kind::zip: return writer{std::make_unique<format::zip_writer>(file)};
+            case kind::zip:
+                if (around) throw std::invalid_argument("archive: ZIP compresses its entries; it takes no codec");
+                return writer{std::make_unique<format::zip_writer>(file)};
+            case kind::tar: return writer{std::make_unique<format::tar_writer>(file, std::move(around))};
         }
         throw std::invalid_argument("archive: unknown kind");
     }

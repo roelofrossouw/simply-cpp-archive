@@ -9,7 +9,7 @@ get_sc_version()
 message(STATUS "SimplyCPP ${SC_MODULE} Version: ${SC_VERSION}")
 
 find_or_install_package(sc-core simply-cpp-dev simply-cpp 1.20.0)
-# Codecs: deflate and gzip (zlib License), TODO: bzip2, xz and zstd. Formats: ZIP (libzip, BSD-3-Clause), TODO: tar.
+# Codecs: deflate and gzip (zlib License), TODO: bzip2, xz and zstd. Formats: ZIP (libzip, BSD-3-Clause) and tar (our own).
 find_package(ZLIB REQUIRED)
 config_or_install_package(libzip libzip-dev libzip)
 if (SC_ARCHIVE_LIBZIP_LIBRARY AND NOT EXISTS "${SC_ARCHIVE_LIBZIP_LIBRARY}")
@@ -30,9 +30,10 @@ add_sc_object(codec_gzip)
 add_sc_object(archive_zip
         LINK_LIBRARIES PkgConfig::libzip
         PUBLIC_LINK_LIBRARIES ${SC_ARCHIVE_LIBZIP_LIBRARY})
-add_sc_object(archive LINK_LIBRARIES sc::sc-core PUBLIC_LINK_LIBRARIES sc::sc-core)
+add_sc_object(archive_tar)
+add_sc_object(sc_archive LINK_LIBRARIES sc::sc-core PUBLIC_LINK_LIBRARIES sc::sc-core)
 
-add_sc_libraries(DESCRIPTION "simply-cpp archives (ZIP) and compression codecs (gzip, deflate)")
+add_sc_libraries(DESCRIPTION "simply-cpp archives (ZIP, tar) and compression codecs (gzip, deflate)")
 target_compile_features(sc-archive PUBLIC cxx_std_20)
 target_compile_features(sc-archive-shared PUBLIC cxx_std_20)
 

@@ -4,17 +4,18 @@
 single streams. They are two separate things, so there are two class families:
 
 - **Formats** (`sc::archive::format`): the structure inside an archive. ZIP
-  (libzip) for now, and with it `.docx`, `.xlsx`, `.pptx`, `.jar`, `.epub`.
+  (libzip), and with it `.docx`, `.xlsx`, `.pptx`, `.jar`, `.epub`; tar (our
+  own code: ustar and pax, reading GNU long names too).
 - **Codecs** (`sc::compression::codec`): the compression of one stream of
   bytes. gzip and raw deflate (zlib) for now.
 
 `sc::archive` is the front: `open()` finds the format from a file's first bytes,
-decompressing first when a codec wraps it (a `.zip.gz`), and `create()` writes one.
+decompressing first when a codec wraps it (a `.tar.gz`), and `create()` writes one.
 
 **Documentation:** the [simply-cpp wiki](https://github.com/roelofrossouw/simply-cpp/wiki) has an [Archive guide](https://github.com/roelofrossouw/simply-cpp/wiki/Archive) and the [sc-archive reference](https://github.com/roelofrossouw/simply-cpp/wiki/Reference-sc-archive).
 
 ```cpp
-#include <archive.h>
+#include <sc_archive.h>
 #include <codec_gzip.h>
 
 const auto docx = sc::archive::open("letter.docx");
@@ -27,6 +28,12 @@ out.add("notes/readme.txt", "Hello");                         // deflated
 out.add_file("photos/a.jpg", "/data/a.jpg", sc::archive::method::store);
 out.close();                                                  // nothing is written before
 
+auto tgz = sc::archive::create("backup.tar.gz", sc::archive::kind::tar,
+                               std::make_shared<sc::compression::gzip>());
+tgz.add("notes/", "");                                        // a folder
+tgz.add_file("notes/readme.txt", "/data/readme.txt");
+tgz.close();
+
 const std::string packed = sc::compression::gzip{}.compress(text);  // .gz
 const std::string raw = sc::compression::deflate{9}.compress(data); // RFC 1951, as in ZIP and PDF
 if (const auto codec = sc::compression::detect(bytes)) text = codec->decompress(bytes);
@@ -34,9 +41,10 @@ if (const auto codec = sc::compression::detect(bytes)) text = codec->decompress(
 
 | Header | Class | |
 |---|---|---|
-| `archive.h` | `sc::archive::reader`, `writer`, `open()`, `from_memory()`, `create()` | the front |
+| `sc_archive.h` | `sc::archive::reader`, `writer`, `open()`, `from_memory()`, `create()` | the front |
 | `archive_format.h` | `sc::archive::format::reader`, `writer`; `entry`, `method` | what each format implements |
 | `archive_zip.h` | `sc::archive::format::zip_reader`, `zip_writer` | ZIP (libzip) |
+| `archive_tar.h` | `sc::archive::format::tar_reader`, `tar_writer` | tar (our own) |
 | `codec.h` | `sc::compression::codec`, `detect()` | what each codec implements |
 | `codec_gzip.h` | `sc::compression::gzip` | gzip (zlib) |
 | `codec_deflate.h` | `sc::compression::deflate` | raw deflate (zlib) |
@@ -45,9 +53,15 @@ if (const auto codec = sc::compression::detect(bytes)) text = codec->decompress(
   order, with their size, compressed size, method (`store`, `deflate`, `bzip2`,
   `xz`, `zstd`, `other`), time and whether they're a folder. ZIP reading handles
   whatever methods the system's libzip was built with.
-- A ZIP writer writes stored or deflated entries, from memory or from files (read
-  at `close()`); an existing file is replaced. A name added again replaces the
-  earlier entry.
+- Writers take entries from memory or from files (read at `close()`); a name
+  ending in `/` is a folder, a name added again replaces the earlier entry, and
+  an existing file is replaced. ZIP deflates entries by default (or stores
+  them); tar stores them, and `create()`'s codec compresses the whole archive
+  (ZIP takes none).
+- tar: files and folders are listed, links and devices skipped. A leading `./`
+  is dropped from names, and a name that comes again (tar appends updates)
+  replaces the earlier entry. Long names and sizes past 8 GiB get pax headers.
+  A tar archive is read into memory whole.
 - `extract()` writes entries into a folder, keeping their paths, and refuses an
   entry that would land outside it (`../x`, an absolute path), before writing
   anything. It's shared by every format.
@@ -67,17 +81,14 @@ Both are linked from the system (`zlib1g-dev`, `libzip-dev`; Homebrew `zlib`,
 `libzip`), so their notices come with their own packages. sc-archive itself is
 Apache-2.0.
 
-**TODO:**
-- the tar format (`archive_tar.h`, no library needed), and with it `.tar.gz`
-  (tar in the gzip codec);
-- bzip2, xz and zstd codecs (libbz2, liblzma, libzstd: all permissive, packaged
-  on every supported Ubuntu and in Homebrew), and with them `.tar.bz2`,
-  `.tar.xz`, `.tar.zst`.
+**TODO:** bzip2, xz and zstd codecs (libbz2, liblzma, libzstd: all permissive,
+packaged on every supported Ubuntu and in Homebrew), and with them `.tar.bz2`,
+`.tar.xz`, `.tar.zst`.
 
 ## Demo
 
 `sc-archive-demo [FILE] [--extract FOLDER] [--prefix PATH]` lists an archive's
-entries, or extracts them; without a file it makes a small archive and a gzip
+(ZIP or tar, gzipped or not) entries, or extracts them; without a file it makes a small archive and a gzip
 stream in the temporary folder and shows them.
 
 <!-- sc-example: examples/sc-archive-demo.cpp -->
@@ -108,4 +119,4 @@ if (const auto folder = args.as<std::string>("extract"); !folder.empty()) {
 ## Building and testing
 
 Run `bash scripts/install.sh` to configure, build, test, package and install.
-The tests (`codecs`, `zip`, label `unit`) need no network or services.
+The tests (`codecs`, `zip`, `tar`, label `unit`) need no network or services.
