@@ -79,6 +79,14 @@ if (const auto codec = sc::compression::detect(bytes)) text = codec->decompress(
   reads `.tar.gz`, `.tar.bz2`, `.tar.xz` and `.tar.zst` alike.
 - Readers and writers aren't thread-safe: one per thread, or a lock around it.
 
+## Two namespaces, on purpose
+
+Archives are `sc::archive` and codecs are `sc::compression`: a codec compresses one stream and knows
+nothing of archives (sc-pdflite-style users want `deflate` alone), so it keeps a namespace of its own
+inside this module. Moving it under `sc::archive` would rename every exported codec symbol, a break
+that isn't worth a major on its own; if sc-archive ever has a major for another reason, folding it in
+as `sc::archive::compression` is the option.
+
 ## Libraries and licences
 
 | Library | For | Licence |
