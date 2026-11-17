@@ -1,6 +1,6 @@
 #pragma once
 
-#include <codec.h>
+#include <sc/archive/codec.h>
 
 namespace sc::compression {
     // bzip2 (libbz2), as in .bz2 files. decompress() also reads several streams one after the

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <codec.h>
+#include <sc/archive/codec.h>
 
 namespace sc::compression {
     // Zstandard (libzstd), as in .zst files. decompress() also reads several frames one after the

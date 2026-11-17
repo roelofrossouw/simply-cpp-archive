@@ -1,6 +1,6 @@
 #pragma once
 
-#include <codec.h>
+#include <sc/archive/codec.h>
 
 namespace sc::compression {
     // gzip (RFC 1952, zlib), as in .gz files. decompress() also reads several members one after the

@@ -1,12 +1,12 @@
 // tar archives through sc::archive: writing (from memory and files, folders, long names), reading
 // back from a file, from memory and as .tar.gz, GNU long names and "./" names written by hand,
 // extracting, and errors.
-#include <archive_tar.h>
-#include <codec_bzip2.h>
-#include <codec_gzip.h>
-#include <codec_xz.h>
-#include <codec_zstd.h>
-#include <sc_archive.h>
+#include <sc/archive/archive_tar.h>
+#include <sc/archive/codec_bzip2.h>
+#include <sc/archive/codec_gzip.h>
+#include <sc/archive/codec_xz.h>
+#include <sc/archive/codec_zstd.h>
+#include <sc/archive/sc_archive.h>
 #include <sc_test.h>
 
 #include <cstdio>

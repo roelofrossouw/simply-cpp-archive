@@ -1,8 +1,8 @@
-#include "sc_archive.h"
+#include <sc/archive/sc_archive.h>
 
-#include "archive_tar.h"
-#include "archive_zip.h"
-#include "codec.h"
+#include <sc/archive/archive_tar.h>
+#include <sc/archive/archive_zip.h>
+#include <sc/archive/codec.h>
 
 #include <algorithm>
 #include <fstream>

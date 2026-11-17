@@ -1,7 +1,7 @@
 #pragma once
 
-#include <archive_format.h>
-#include <codec.h>
+#include <sc/archive/archive_format.h>
+#include <sc/archive/codec.h>
 
 #include <memory>
 

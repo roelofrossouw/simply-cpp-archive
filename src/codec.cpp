@@ -1,9 +1,9 @@
-#include "codec.h"
+#include <sc/archive/codec.h>
 
-#include "codec_bzip2.h"
-#include "codec_gzip.h"
-#include "codec_xz.h"
-#include "codec_zstd.h"
+#include <sc/archive/codec_bzip2.h>
+#include <sc/archive/codec_gzip.h>
+#include <sc/archive/codec_xz.h>
+#include <sc/archive/codec_zstd.h>
 
 namespace sc::compression {
     std::unique_ptr<codec> detect(const std::string_view bytes) {

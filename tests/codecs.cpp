@@ -1,10 +1,10 @@
 // The codecs: round trips, levels, empty and large data, several streams one after the other,
 // detection, and errors; for each, then what's particular to deflate and gzip.
-#include <codec_bzip2.h>
-#include <codec_deflate.h>
-#include <codec_gzip.h>
-#include <codec_xz.h>
-#include <codec_zstd.h>
+#include <sc/archive/codec_bzip2.h>
+#include <sc/archive/codec_deflate.h>
+#include <sc/archive/codec_gzip.h>
+#include <sc/archive/codec_xz.h>
+#include <sc/archive/codec_zstd.h>
 #include <sc_test.h>
 
 #include <memory>

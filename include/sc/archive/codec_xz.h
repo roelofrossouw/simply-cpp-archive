@@ -1,6 +1,6 @@
 #pragma once
 
-#include <codec.h>
+#include <sc/archive/codec.h>
 
 namespace sc::compression {
     // xz (liblzma), as in .xz files. decompress() also reads several streams one after the other.

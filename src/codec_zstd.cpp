@@ -1,4 +1,4 @@
-#include "codec_zstd.h"
+#include <sc/archive/codec_zstd.h>
 
 #include <zstd.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <codec.h>
+#include <sc/archive/codec.h>
 
 namespace sc::compression {
     // Raw deflate (RFC 1951, zlib), as inside ZIP entries and PDF streams.

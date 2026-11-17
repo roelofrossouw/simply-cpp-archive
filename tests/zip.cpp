@@ -1,8 +1,8 @@
 // ZIP archives through sc::archive: writing (from memory and files, stored and deflated), reading
 // back from a file, from memory and from inside gzip, names, replacing, extracting (with a prefix,
 // and refusing paths outside), errors.
-#include <sc_archive.h>
-#include <codec_gzip.h>
+#include <sc/archive/sc_archive.h>
+#include <sc/archive/codec_gzip.h>
 #include <sc_test.h>
 
 #include <filesystem>

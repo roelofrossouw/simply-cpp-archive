@@ -8,7 +8,7 @@ option(SC_ARCHIVE_BUILD_TESTS "Build simply-cpp-archive tests" ${PROJECT_IS_TOP_
 get_sc_version()
 message(STATUS "SimplyCPP ${SC_MODULE} Version: ${SC_VERSION}")
 
-find_or_install_package(sc-core simply-cpp-dev simply-cpp 1.20.0)
+find_or_install_package(sc-core simply-cpp-dev simply-cpp 2.2.0)
 # Codecs: deflate and gzip (zlib License), bzip2 (libbz2, bzip2 License), xz (liblzma, 0BSD / public
 # domain) and zstd (libzstd, BSD-3-Clause). Formats: ZIP (libzip, BSD-3-Clause) and tar (our own).
 find_package(ZLIB REQUIRED)
@@ -27,7 +27,7 @@ if (SC_ARCHIVE_LIBZIP_LIBRARY AND NOT EXISTS "${SC_ARCHIVE_LIBZIP_LIBRARY}")
 endif ()
 find_library(SC_ARCHIVE_LIBZIP_LIBRARY NAMES zip HINTS ${libzip_LIBRARY_DIRS} REQUIRED)
 
-set(SOURCE_OBJECTS include/archive_format.h)
+set(SOURCE_OBJECTS include/sc/archive/archive_format.h)
 set(SOURCE_LIBRARIES)
 set(SOURCE_LINK_LIBRARIES)
 

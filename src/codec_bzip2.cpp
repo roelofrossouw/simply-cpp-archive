@@ -1,4 +1,4 @@
-#include "codec_bzip2.h"
+#include <sc/archive/codec_bzip2.h>
 
 #include <bzlib.h>
 

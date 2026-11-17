@@ -1,4 +1,4 @@
-#include "codec_gzip.h"
+#include <sc/archive/codec_gzip.h>
 
 #include "zlib_streams.h"
 

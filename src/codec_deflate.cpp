@@ -1,4 +1,4 @@
-#include "codec_deflate.h"
+#include <sc/archive/codec_deflate.h>
 
 #include "zlib_streams.h"
 
