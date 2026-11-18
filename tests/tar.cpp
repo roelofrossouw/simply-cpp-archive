@@ -6,7 +6,7 @@
 #include <sc/archive/codec_gzip.h>
 #include <sc/archive/codec_xz.h>
 #include <sc/archive/codec_zstd.h>
-#include <sc/archive/sc_archive.h>
+#include <sc/archive/archive.h>
 #include <sc_test.h>
 
 #include <cstdio>

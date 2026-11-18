@@ -1,4 +1,4 @@
-#include <sc/archive/sc_archive.h>
+#include <sc/archive/archive.h>
 
 #include <sc/archive/archive_tar.h>
 #include <sc/archive/archive_zip.h>

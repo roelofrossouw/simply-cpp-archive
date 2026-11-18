@@ -9,7 +9,7 @@
 #include <vector>
 
 // What every archive format gives: a list of entries, each entry's bytes, and a way to write
-// them. Each format is its own class (archive_zip.h, archive_tar.h); sc_archive.h picks one.
+// them. Each format is its own class (archive_zip.h, archive_tar.h); archive.h picks one.
 namespace sc::archive {
     // How an entry is compressed inside the archive. Formats that compress the whole stream
     // instead (a .tar.gz) store their entries.

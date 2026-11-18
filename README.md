@@ -16,7 +16,7 @@ decompressing first when a codec wraps it (a `.tar.gz`), and `create()` writes o
 **Documentation:** the [simply-cpp wiki](https://github.com/roelofrossouw/simply-cpp/wiki) has an [Archive guide](https://github.com/roelofrossouw/simply-cpp/wiki/Archive) and the [sc-archive reference](https://github.com/roelofrossouw/simply-cpp/wiki/Reference-sc-archive).
 
 ```cpp
-#include <sc/archive/sc_archive.h>
+#include <sc/archive/archive.h>
 #include <sc/archive/codec_gzip.h>
 
 const auto docx = sc::archive::open("letter.docx");
@@ -43,7 +43,7 @@ if (const auto codec = sc::compression::detect(bytes)) text = codec->decompress(
 
 | Header | Class | |
 |---|---|---|
-| `sc_archive.h` | `sc::archive::reader`, `writer`, `open()`, `from_memory()`, `create()` | the front |
+| `archive.h` | `sc::archive::reader`, `writer`, `open()`, `from_memory()`, `create()` | the front |
 | `archive_format.h` | `sc::archive::format::reader`, `writer`; `entry`, `method` | what each format implements |
 | `archive_zip.h` | `sc::archive::format::zip_reader`, `zip_writer` | ZIP (libzip) |
 | `archive_tar.h` | `sc::archive::format::tar_reader`, `tar_writer` | tar (our own) |

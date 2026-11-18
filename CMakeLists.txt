@@ -43,7 +43,7 @@ add_sc_object(archive_zip
         LINK_LIBRARIES PkgConfig::libzip
         PUBLIC_LINK_LIBRARIES ${SC_ARCHIVE_LIBZIP_LIBRARY})
 add_sc_object(archive_tar)
-add_sc_object(sc_archive LINK_LIBRARIES sc::sc-core PUBLIC_LINK_LIBRARIES sc::sc-core)
+add_sc_object(archive LINK_LIBRARIES sc::sc-core PUBLIC_LINK_LIBRARIES sc::sc-core)
 
 add_sc_libraries(DESCRIPTION "simply-cpp archives (ZIP, tar) and compression codecs (gzip, deflate, bzip2, xz, zstd)")
 target_compile_features(sc-archive PUBLIC cxx_std_20)

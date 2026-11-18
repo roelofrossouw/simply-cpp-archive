@@ -6,7 +6,7 @@
 //     sc-archive-demo report.docx --extract out --prefix word/media/
 //     sc-archive-demo backup.tar.gz
 
-#include <sc/archive/sc_archive.h>
+#include <sc/archive/archive.h>
 #include <sc/archive/codec_gzip.h>
 #include <sc/core/params.h>
 
